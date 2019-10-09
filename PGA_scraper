@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-data = requests.get('http://www.espn.com/golf/stats/hole/_/tournament/401148234/sort/holeNum')
+data = requests.get('')
 soup = BeautifulSoup(data.text, 'html.parser')
 results = soup.find_all('tr', {'class': ['oddrow', 'evenrow']})
 
