@@ -1,0 +1,31 @@
+from bs4 import BeautifulSoup
+import requests
+data = requests.get('http://www.espn.com/golf/stats/hole/_/tournament/401148234/sort/holeNum')
+soup = BeautifulSoup(data.text, 'html.parser')
+results = soup.find_all('tr', {'class': ['oddrow', 'evenrow']})
+
+records = []
+for result in results:
+    eagles = result.find_all("td")[4].text
+    birdies = result.find_all("td")[5].text
+    pars = result.find_all("td")[6].text
+    bogeys = result.find_all("td")[7].text
+    doubles = result.find_all("td")[8].text
+    others = result.find_all("td")[9].text
+    records.append((eagles, birdies, pars, bogeys, doubles, others))
+    
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame (records, columns=['eagles','birdies','pars','bogeys','doubles','others'])
+df.index +=1
+df[['eagles','birdies','pars','bogeys','doubles','others']] = df[['eagles','birdies','pars','bogeys','doubles','others']].astype(int)
+df['total'] =                   (df.eagles + df.birdies + df.pars + df.bogeys + df.doubles + df.others)
+df['draw']          = 1 /     (((df.pars / df.total) **2) + ((df.birdies / df.total) **2) + ((df.bogeys / df.total) **2) + ((df.doubles / df.total) **2) + ((df.others / df.total) **2) + ((df.eagles / df.total) **2))
+df['not_draw']      = 1 /  (1-(((df.pars / df.total) **2) + ((df.birdies / df.total) **2) + ((df.bogeys / df.total) **2) + ((df.doubles / df.total) **2) + ((df.others / df.total) **2) + ((df.eagles / df.total) **2)))
+df['2b_birdie']     = 1 /  (1- (((df.total - df.birdies) / df.total) ** 2))
+df['2b_bogey']      = 1 /  (1- (((df.total - df.bogeys) / df.total) ** 2))
+df['3b_birdie']     = 1 /  (1- (((df.total - df.birdies) / df.total) ** 3))
+df['3b_bogey']      = 1 /  (1- (((df.total - df.bogeys) / df.total) ** 3))
+
+df
